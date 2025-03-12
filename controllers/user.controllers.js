@@ -4,8 +4,7 @@ import { sendEmail } from "../utils/mail.js";
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
-import { read } from "fs";
+
 const registerUser = async (req, res) => {
   //get user data
   //validate user data
@@ -199,6 +198,114 @@ const logOutUser = async (req, res) => {
   }
 };
 
-const changePassword = async (req, res) => {};
+const changePassword = async (req, res) => {
+  //get data
+  //valied data
+  //find user
+  //ganaratea token
+  //save db
+  // send forgetlink
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({
+      message: "Please provied a valid email",
+      success: false,
+    });
+  }
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "User not exist with this email",
+        success: false,
+      });
+    }
+    const token = crypto.randomBytes(64).toString("hex");
+    user.forgotPasswordToken = token;
+    await user.save();
+    const emailText = `Please verify and change your password: ${process.env.BASE_URL}/api/v1/users/forgetpassword/${token}`;
+    const emailRes = await sendEmail(email, "Forget your password", emailText);
+    if (!emailRes) {
+      return res.status(400).json({
+        message: "Email not send pliss try ufter some tipme",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "Password change email send pliss click the email",
+      success: false,
+      data: {
+        email,
+      },
+    });
+  } catch (error) {
+    return res.status(200).json({
+      message: "Something went wrong",
+      success: false,
+    });
+  }
+};
 
-export { registerUser, verifyUser, loginUser, logOutUser };
+const changePasswordVerifay = async (req, res) => {
+  //get the token and password
+  // find the user
+  // change ther password
+  // send res
+  const { token, password } = req.params;
+  if (!token || !password) {
+    return res.status(400).json({
+      message: "All fields are required",
+      sucess: false,
+    });
+  }
+  try {
+    const user = await User.findOne({ forgotPasswordToken: token });
+    if (!user) {
+      return res.status(400).json({
+        message: "Token Invalid",
+        sucess: false,
+      });
+    }
+    user.password = password;
+    user.forgotPasswordToken = null;
+    user.save();
+    return res.status(200).json({
+      message: "Password change success",
+      sucess: true,
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: "Something went wrong",
+      sucess: false,
+    });
+  }
+};
+
+const deleteUserAccount = async (req, res) => {
+  const { session } = req.cookies;
+  if (!session) {
+    return res.status(400).json({
+      message: "Session not exist",
+      sucess: false,
+    });
+  }
+  const { id, email } = jwt.decode(session);
+  try {
+    await User.findOneAndDelete({ email });
+  } catch (error) {
+    return res.status(400).json({
+      message: "Something went wrong",
+      sucess: false,
+    });
+  }
+};
+
+export {
+  registerUser,
+  verifyUser,
+  loginUser,
+  logOutUser,
+  changePassword,
+  changePasswordVerifay,
+  deleteUserAccount,
+};
