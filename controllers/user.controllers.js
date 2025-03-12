@@ -19,7 +19,7 @@ const registerUser = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({
         message: "All fields are required",
-        sucess: false,
+        success: false,
       });
     }
 
@@ -27,7 +27,7 @@ const registerUser = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         message: "User already exists",
-        sucess: false,
+        success: false,
       });
     }
 
@@ -40,7 +40,7 @@ const registerUser = async (req, res) => {
     if (!newUser) {
       return res.status(400).json({
         message: "User not created in DB",
-        sucess: false,
+        success: false,
       });
     }
 
@@ -55,7 +55,7 @@ const registerUser = async (req, res) => {
 
     return res.status(200).json({
       message: "User created successfully. Please verify the email ID to login",
-      sucess: true,
+      success: true,
       user: {
         name,
         email,
@@ -64,7 +64,7 @@ const registerUser = async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       message: "Something went wrong",
-      sucess: false,
+      success: false,
     });
   }
 };
@@ -92,12 +92,12 @@ const verifyUser = async (req, res) => {
     await user.save();
     return res.status(200).json({
       message: "User verified successfully",
-      success: true, // Fixed from sucess
+      success: true, // Fixed from success
     });
   } catch (error) {
     return res.status(400).json({
       message: "Something went wrong",
-      success: false, // Fixed from sucess
+      success: false, // Fixed from success
     });
   }
 };
@@ -255,7 +255,7 @@ const changePasswordVerifay = async (req, res) => {
   if (!token || !password) {
     return res.status(400).json({
       message: "All fields are required",
-      sucess: false,
+      success: false,
     });
   }
   try {
@@ -263,7 +263,7 @@ const changePasswordVerifay = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         message: "Token Invalid",
-        sucess: false,
+        success: false,
       });
     }
     user.password = password;
@@ -271,12 +271,12 @@ const changePasswordVerifay = async (req, res) => {
     user.save();
     return res.status(200).json({
       message: "Password change success",
-      sucess: true,
+      success: true,
     });
   } catch (error) {
     return res.status(400).json({
       message: "Something went wrong",
-      sucess: false,
+      success: false,
     });
   }
 };
@@ -286,16 +286,26 @@ const deleteUserAccount = async (req, res) => {
   if (!session) {
     return res.status(400).json({
       message: "Session not exist",
-      sucess: false,
+      success: false,
     });
   }
   const { id, email } = jwt.decode(session);
   try {
-    await User.findOneAndDelete({ email });
+    const res = await User.findOneAndDelete({ email });
+    if (!res) {
+      return res.status(300).json({
+        message: "Account not found",
+        success: false,
+      });
+    }
+    return res.status(200).json({
+      message: "account deleted",
+      success: true,
+    });
   } catch (error) {
     return res.status(400).json({
       message: "Something went wrong",
-      sucess: false,
+      success: false,
     });
   }
 };
