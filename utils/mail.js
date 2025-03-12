@@ -1,9 +1,10 @@
 import nodemailer from "nodemailer";
 import "dotenv/config";
+
 export const transporter = nodemailer.createTransport({
-  host: "live.smtp.mailtrap.io",
-  port: 587,
-  secure: false, // true for port 465, false for other ports
+  host: process.env.NODEMAILER_HOST,
+  port: process.env.NODEMAILER_PORT,
+  secure: false,
   auth: {
     user: process.env.NODEMAILER_USERNAME,
     pass: process.env.NODEMAILER_PASSWORD,
@@ -13,13 +14,13 @@ export const transporter = nodemailer.createTransport({
 export async function sendEmail(email, subject, text) {
   try {
     const info = await transporter.sendMail({
-      from: '"Maddison Foo Koch 👻" <maddison53@ethereal.email>', // sender address
+      from: process.env.NODEMAILER_SENDER_EMAIL,
       to: email,
       subject,
       text,
     });
     return info;
   } catch (error) {
-    console.log("An error occurred when sending email", error);
+    console.error("Email sending failed:", error);
   }
 }
