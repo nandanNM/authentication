@@ -3,6 +3,7 @@ import {
   changePassword,
   changePasswordVerifay,
   deleteUserAccount,
+  getUser,
   loginUser,
   logOutUser,
   registerUser,
@@ -18,5 +19,6 @@ router.get("/logout", logOutUser);
 router.post("/forgetpassword", changePassword);
 router.get("/forgetpassword/:token/:password", changePasswordVerifay);
 router.delete("/delete", deleteUserAccount);
+router.get("/getuser", getUser);
 
 export default router;

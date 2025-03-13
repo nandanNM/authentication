@@ -310,6 +310,45 @@ const deleteUserAccount = async (req, res) => {
   }
 };
 
+const getUser = async (req, res) => {
+  const { session } = req.cookies;
+  if (!session) {
+    return res.status(400).json({
+      message: "Session not exist",
+      success: false,
+    });
+  }
+  try {
+    const { id, email, name } = jwt.decode(session);
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "User found",
+      success: true,
+      data: {
+        // send user all data with out password
+        id,
+        email,
+        name,
+        role: user.role,
+        isVerified: user.isVerified,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
+  } catch (error) {
+    return res.status(400).json({
+      message: "Something went wrong",
+      success: false,
+    });
+  }
+};
 export {
   registerUser,
   verifyUser,
@@ -318,4 +357,5 @@ export {
   changePassword,
   changePasswordVerifay,
   deleteUserAccount,
+  getUser,
 };
